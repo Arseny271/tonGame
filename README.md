@@ -22,7 +22,7 @@ Players buy any of 64 squares (or several), after a while the smart contract set
 - After the game has expired, as well as an additional 60 seconds, the game must be completed. Use **game-end.fif** &lt;game-addr&gt; [-S &lt;savefile&gt;]
 	- &lt;game-addr&gt; - lottery contract address
   
-*Game web client**
+**Game web client**
 For the convenience of players, a web client has been created. To use it, start the server:
 
 `cd server`
