@@ -1,10 +1,8 @@
-# tonGame
-
-#### **Smart contract lottery**
+#**Smart contract lottery**
 
 Players buy any of 64 squares (or several), after a while the smart contract sets a win amount for each square.
 
-**Creating and working with a smart contract**
+### **Creating and working with a smart contract**
 - To create a lottery smart contract, use the script **new-casino.fif** &lt;workchain-id&gt; &lt;contract-id&gt; [&lt;filename-base&gt;]
 
 - To start a new game, use **new-game.fif** &lt;filename-base&gt; &lt;contract-id&gt; &lt;seqno&gt; &lt;square-price&gt; &lt;game-time&gt; [&lt;savefile&gt;]
@@ -22,7 +20,7 @@ Players buy any of 64 squares (or several), after a while the smart contract set
 - After the game has expired, as well as an additional 60 seconds, the game must be completed. Use **game-end.fif** &lt;game-addr&gt; [-S &lt;savefile&gt;]
 	- &lt;game-addr&gt; - lottery contract address
   
-**Game web client**
+### **Game web client**
 For the convenience of players, a web client has been created. To use it, start the server:
 
 `cd server`
@@ -33,8 +31,11 @@ note that you will need to install the flask:
 
 `pip3 install flask`
 
+![](https://raw.githubusercontent.com/Arseny271/tonGame/master/screenshots/photo_2019-12-22_18-00-04.jpg)
+![](https://raw.githubusercontent.com/Arseny271/tonGame/master/screenshots/image_2019-12-22_18-19-21.png)
 
-**Prize Determination Algorithm**
+
+### **Prize Determination Algorithm**
 - Random 256 bit integer generated
 - The number is divided by 64 4-bit integers [x<sub>0</sub>, x<sub>1</sub>, x<sub>2</sub> ... x<sub>63</sub>]
 - Each square corresponds to an integer x<sub>i</sub>
@@ -43,3 +44,5 @@ note that you will need to install the flask:
 a square is also determined which will receive an additional 10 * p  grams:
 - Find the sum of all indices: s = x<sub>0</sub> + x<sub>1</sub> + x<sub>2</sub> ... + x<sub>63</sub>
 - Winner square number is 63 - (s & 63)
+
+Оn average, **85%** of investments are returned to players, the rest is received by the lottery owner
