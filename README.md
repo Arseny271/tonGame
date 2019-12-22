@@ -1,4 +1,4 @@
-#**Smart contract lottery**
+# **Smart contract lottery**
 
 Players buy any of 64 squares (or several), after a while the smart contract sets a win amount for each square.
 
