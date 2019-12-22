@@ -60,17 +60,3 @@ dup hashu wallet_pk ed25519_sign_uint
 
 2 boc+>B savefile +".boc" tuck B>file
 ."(Saved to file " type .")" cr
-
-1 halt
-
-
-
-	
-
-
-
-
-
-
-
-

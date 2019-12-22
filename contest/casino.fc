@@ -240,3 +240,9 @@ tuple create_prize_multipliers (int hash) impure {
 		ds.game_end(base_info);		
 	}
 }
+
+
+
+tuple seqno() method_id {
+	return triple(get_data().begin_parse().preload_base_info());
+}

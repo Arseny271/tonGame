@@ -1,5 +1,6 @@
 #!/usr/bin/fift -s
 "TonUtil.fif" include
+"Color.fif" include
 
 { ."usage: " @' $0 type ." <filename-base> <sub-id> <seqno> <square-price> <game-time> [<savefile>]" cr
   ."starts a new game with a price per square <square-price> grams" cr
@@ -25,6 +26,8 @@ file-base +".addr" load-address
 ."subid = 0x" subid x. cr
 ."seqno = 0x" seqno x. cr
 ."price = " price .GR cr cr
+
+^Yellow  ."Warning! Make sure the balance of the contract is more than " price 116 * .GR  ^reset cr cr
 
 <b subid 32 u, seqno 32 u, now timeout + 32 u, price 64 u, b>
 dup ."signing message: " <s csr. cr
