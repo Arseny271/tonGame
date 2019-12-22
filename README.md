@@ -21,7 +21,7 @@ Players buy any of 64 squares (or several), after a while the smart contract set
 - After the game has expired, as well as an additional 60 seconds, the game must be completed. Use **game-end.fif** &lt;game-addr&gt; [-S &lt;savefile&gt;]
 	- &lt;game-addr&gt; - lottery contract address
 
-- To send grams from the balance of the contract, use **wallet2.fif** &lt;filename-base&gt; &lt;dest-addr&gt; &lt;contract-id&gt; &lt;seqno&gt; &lt;amount&gt;
+- To send grams from the balance of the contract, use **sendgrams.fif** &lt;filename-base&gt; &lt;dest-addr&gt; &lt;contract-id&gt; &lt;seqno&gt; &lt;amount&gt;
 	- &lt;filename-base&gt; - you lottery &lt;filename-base&gt;.addr and &lt;filename-base&gt;.pk
 	- &lt;dest-addr&gt; - address of the recipient
 	- &lt;amount&gt; - amount to be sent
