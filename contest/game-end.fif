@@ -1,0 +1,40 @@
+#!/usr/bin/fift -s
+"TonUtil.fif" include
+"GetOpt.fif" include
+
+{ ."usage: " @' $0 type ." <game-addr> [-S <savefile>] " cr 
+  1 halt
+} : usage
+
+"game-end-query" =: savefile
+true =: bounce
+
+begin-options
+  "S" "--savefile" { =: savefile } short-long-option-arg
+  "h" "--help" { usage } short-long-option
+parse-options
+
+$# 1 < ' usage if
+1 :$1..n
+
+$1 bounce parse-load-address =: bounce 2=: game_addr
+
+."Source address = " game_addr 2dup .addr cr 6 .Addr cr cr
+
+
+<b b{1000100} s, game_addr addr, 0 Gram, b{00} s, 0 1 u, b>
+
+2 boc+>B savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr
+
+
+
+	
+
+
+
+
+
+
+
+

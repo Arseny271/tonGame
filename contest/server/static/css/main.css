@@ -1,0 +1,238 @@
+body {
+	margin: 0;
+	user-select: none;
+}
+
+.message-background {
+	opacity: 0;
+	position:fixed;
+	left:0px; top:-100%;
+	width:100%;	height:100%;
+	display:flex;
+	align-items:center;
+	justify-content: center;
+	background: rgba(127,127,127,0.5);
+	transition: opacity 0.2s linear 0s, top 0s linear 0.3s;
+}
+.message-background[active="true"] {
+	opacity: 1;
+	top: 0px;
+	transition: opacity 0.2s linear 0s;
+}
+
+.message {
+	background: white;
+	border-radius: 12px;
+	margin: 8px;
+	transform: scale(0);
+	transition: 0.2s;
+	transition-timing-function: cubic-bezier(.24,-0.38,.69,.45);
+	display:flex;
+	flex-direction:column;
+	max-height: 90%;
+	max-width: 90%;
+	width: 400px;
+	padding: 10px;
+}
+.message-background[active="true"] .message {
+	transform: scale(1);
+	transition-timing-function: cubic-bezier(.31,.55,.76,1.38);
+}
+
+.login-form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.login-form .button {
+	margin: 10px 0;
+	width: 180px;
+}
+.login-form input {
+	display: none;
+}
+.login-form p {
+	margin: 8px 0;
+	word-wrap: break-word;
+	width: 90%;
+	text-align: center;
+}
+
+
+
+
+
+
+
+@keyframes scale {
+	from {
+		transform:scaleX(1);
+	}
+	50% {
+		transform:scaleX(0);
+	}
+	to {
+		transform:scaleX(1);
+	}
+}
+
+
+.main-container{
+	display: flex;
+	flex-direction: column;
+	flex-grow: 0;
+	align-items: center;
+	justify-content: center;
+}
+
+.game-container {
+	display: flex;
+}
+
+.container-info {
+	font-size: 14px;
+	width: 240px;
+	padding: 4px 6px;
+	flex-direction: column;
+	user-select: text;
+}
+.container-info p {
+	margin: 2px 0;
+	word-break: break-all;
+}
+.container-info b {
+	margin: 2px 0;
+	width: 100%;
+}
+
+.squares-container{
+	display: flex;
+	flex-direction: column;
+}
+
+.button-container{
+	display: flex;
+	margin: 0 2px;
+	margin-top: 4px;
+}
+
+.container-right{
+	flex-direction: column;
+	display: flex;
+	justify-content: space-between;
+}
+
+.container {
+	display: flex;
+	margin: 2px;
+}
+.header p {
+	margin: 0;
+}
+
+.header {
+	min-height: 40px;
+	padding: 4px 10px;
+	box-sizing: border-box;
+
+	border-radius: 3px;
+	background: #2b71b1;
+	color: white;
+
+	justify-content: space-between;
+	align-items: center;
+	font-size: 14px;
+
+}
+
+
+
+
+.squares th {
+	width: 45px;
+	height: 45px;
+	padding: 0;
+	font-weight: 700;
+	text-decoration: none;
+	color: #aaaaaa;
+	border-radius: 4px;
+	border: 2px solid #bdbdbd;
+	box-sizing: border-box;
+}
+.squares th:hover {
+	background: #d0d0d0;
+}
+.squares th:active,
+.squares th[state=selected] {
+	border-radius: 3px;
+	border: none;
+	color: white;
+	background: #00af4d;
+}
+.squares th[state=bought] {
+	animation: scale  0.2s 1 ease;
+	background: #60A5E5;
+	border-radius: 3px;
+	border: none;
+	color: white;
+}
+.squares th[state=busy] {
+	animation: scale  0.2s 1 ease;
+	background: #2b71b1;
+	border-radius: 3px;
+	border: none;
+	color: white;
+}
+
+.squares th[result=true] {
+	font-size: 12px;
+}
+.squares th[winner=true] {
+	border: 3px solid #00af4d;
+}
+
+
+.button[color=blue]  {
+	background: #2b71b1;
+	border-radius: 3px;
+	border: none;
+	color: white;
+}
+
+.button {
+	padding: 8px 16px;
+	font-size: 14px;
+	font-weight: 700;
+	color: white;
+	text-decoration: none;
+	border-radius: 3px;
+	transition: 0.2s;
+	user-select: none;
+	cursor: pointer;
+	transform:scaleX(1);
+	text-align: center;
+	position: relative;
+	margin: 0 2px;
+}
+.button .progress-round {
+	top: 6px;
+	right: 6px;
+	display: none;
+}
+#goToCurSt[loading=true] {
+	padding-right: 30px;
+}
+.button[loading=true] .progress-round{
+	display: block;
+}
+.button[color=blue]:hover {
+	background: #167ac7;
+}
+
+.button[active=false],
+.button[active=false]:hover,
+.button[active=false]:active{
+	background: #bbbbbb;
+	box-shadow: 0 -3px #888888 inset;
+	color: #888888;
+}

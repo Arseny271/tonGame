@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+	<head>
+		<title>TON Casino 777</title>
+    <meta charset = 'utf-8' />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="static/main.css">
+		<link rel="stylesheet" type="text/css" href="static/loading-animation.css">
+
+		<script src="static/crypto.js"></script>
+		<script src="static/nacl.js"></script>
+		<script src="static/bin-utils.js"></script>
+		<script src="static/cells.js"></script>
+		<script src="static/blockchain.js"></script>
+	</head>
+
+	<body>
+		<div class="main-container">
+			<div class="full-container">
+				<div class="container header">
+					<p>Hello World</p>
+					<p>1 GRM = 0.7545 USD / 47.095 RUB </p>
+				</div>
+				<div class="game-container">
+					<div class="squares-container">
+						<table class="squares"></table>
+					</div>
+					<div class="container-right">
+						<div class="container container-info">
+							<b>You Wallet</b>
+							<p>Address: kQCl4e24HjRBq8vAodh8EQdTUU4hKtLVus++UwAn1qXAAmuT</p>
+							<p>Sequence number: 512</p>
+							<p>Subwallet id: 0</p>
+							<p>Balance: 57 GRM</p>
+							<b>Game Info</b>
+							<p>Address: kQD3pTHV0Dj+V0xC8pSIO0IKMCoiSWLzxe71+Ay9G7vNe3fQ</p>
+							<p>End time: 23:59:59</p>
+							<p>Square price: 5 GRM</p>
+							<hr>
+							<p>You squares: 16</p>
+							<p>Сhance: 25%</p>
+						</div>
+						<div class="container">
+							<a class="button" color="blue" id="buyButton" onclick="buyCells()">Buy!</a>
+							<a class="button" color="blue">Go to current state</a>
+						</div>
+				</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="message-background" id="mbg" active="true" >
+			<div class="message">
+				<form class="login-form">
+					<a class="button" color="blue" id="casinoAddrButton">
+						Casino contract address <progress class="progress-round"></progress></a>
+					<p id="casinoAddrLabel"></p>
+					<a class="button" color="blue" id="walletAddrButton">
+						You wallet address <progress class="progress-round"></progress></a>
+					<p id="walletAddrLabel"></p>
+					<a class="button" color="blue" id="privateKeyButton">	You wallet private key </a>
+					<p id="privateKeyLabel"></p>
+					<a class="button" color="blue" active="false" id="loginButton">	Login	</a>
+					<input id="privateKey" type="file" accept=".pk">
+					<input id="walletAddr" type="file" accept=".addr">
+					<input id="casinoAddr" type="file" accept=".addr">
+				</form>
+			</div>
+		</div>
+
+
+
+		<script src="static/main.js"></script>
+
+	</body>
+</html>

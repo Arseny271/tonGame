@@ -1,0 +1,45 @@
+#!/usr/bin/fift -s
+"TonUtil.fif" include
+"Asm.fif" include
+
+{ ."<workchain-id> <contract-id> [<filename-base>]" cr 1 halt } : usage
+$# 2 < ' usage if
+
+3 :$1..n
+$1 parse-workchain-id =: wc
+$2 parse-int =: subid
+$3 "new-contract" replace-if-null =: file-base
+
+."Creating new contract in workchain " wc . cr
+
+// code
+"casino.fif" include 
+
+// data
+<b 0 32 u, subid 32 u,
+	file-base +".pk" load-generate-keypair
+	constant wallet_pk B, 0 4 u,
+b> 
+
+// libraries
+null 												
+
+<b b{0011} s, 3 roll ref, rot ref, swap dict, b>  // create StateInit
+
+dup hashu wc swap 2dup 2constant wallet_addr cr
+."new wallet address = " 2dup .addr cr
+."Non-bounceable address (for init):     " 2dup 7 .Addr cr
+."Bounceable address (for later access): " 2dup 6 .Addr cr
+file-base +".addr" save-address-verbose cr 
+
+."subid = 0x" subid x. cr
+."seqno = 0x" 0 x. cr cr
+
+<b subid 32 u, 0 32 u, 255 8 u, <b b> ref, b>
+dup ."signing message: " <s csr. cr
+dup hashu wallet_pk ed25519_sign_uint rot
+
+<b b{1000100} s, wallet_addr addr, b{000010} s, swap <s s, b{0} s, swap B, swap <s s, b>
+
+2 boc+>B file-base +"-query.boc" tuck B>file
+."(Saved contract creating query to file " type .")" cr
