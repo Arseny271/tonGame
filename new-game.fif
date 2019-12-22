@@ -1,0 +1,39 @@
+#!/usr/bin/fift -s
+"TonUtil.fif" include
+"Color.fif" include
+
+{ ."usage: " @' $0 type ." <filename-base> <sub-id> <seqno> <square-price> <game-time> [<savefile>]" cr
+  ."starts a new game with a price per square <square-price> grams" cr
+  ."the game will last <game-time> seconds" cr 1 halt
+} : usage
+
+$# dup 5 < swap 6 > or ' usage if
+
+6 :$1..n
+$1 =: file-base
+$2 parse-int =: subid
+$3 parse-int =: seqno
+$4 $>GR =: price
+$5 parse-int =: timeout
+$6 "game-start-query" replace-if-null =: savefile
+
+file-base +".pk" load-keypair nip constant wallet_pk cr 
+
+file-base +".addr" load-address
+2dup 2constant wallet_addr
+."Source address = " 2dup .addr cr 6 .Addr cr cr
+
+."subid = 0x" subid x. cr
+."seqno = 0x" seqno x. cr
+."price = " price .GR cr cr
+
+^Yellow  ."Warning! Make sure the balance of the contract is more than " price 116 * .GR  ^reset cr cr
+
+<b subid 32 u, seqno 32 u, now timeout + 32 u, price 64 u, b>
+dup ."signing message: " <s csr. cr
+dup hashu wallet_pk ed25519_sign_uint
+
+<b b{1000100} s, wallet_addr addr, 0 Gram, b{00} s, swap B, swap <s s, b>
+
+2 boc+>B savefile +".boc" tuck B>file
+."(Saved game start query to file " type .")" cr
