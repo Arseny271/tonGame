@@ -91,9 +91,11 @@ function printGrams (g) {
   return grams + " GRM";
 }
 
+let versionSelect = document.getElementById("versionSelect");
 let loginButton = document.getElementById("loginButton");
 loginButton.onclick = function () {
   if (loginButton.active) {
+    loginParams.walletAddr.version = versionSelect.selectedIndex
     infoTable.updateAll()
     hideMessage()
   }
@@ -120,22 +122,15 @@ let buyButton = document.getElementById("buyButton");
 
 function buyCells(){
   let bits = "", selected = 0;
-  for (square of squaresArr){
+  for (square of squatesCont.squaresArr){
     if (square.state == "selected") {
-      // square.setState("bought");
       selected += 1;
       bits += "1";
     } else {
       bits += "0";
     }
   }
-
-
-  createOrder(
-    loginParams,
-    bits,
-    selected
-  )
+  createOrder(loginParams, bits, selected);
 }
 
 
@@ -176,7 +171,10 @@ function getCasinoParams (cell, addr) {
     if (slice.bits_left() == 256) {
       gameState.endHash = slice.loadBytesU4(64);
       gameState.state = "game_end"
-      gameState.players = gameStateLoad (addr, gameState.seqno)
+      let loaded = gameStateLoad(addr, gameState.seqno)
+      console.log("loaded", loaded)
+      gameState.players = loaded.players || {};
+      gameState.price = loaded.price;
     }
   }
 
@@ -225,14 +223,16 @@ function goToCurrentState() {
 
 function createOrder(params, buyedSquares, squaresAmount) {
   const SEND_MODE = 3;
-  let destAddr = params.casinoAddr.bytes,
+  let version = loginParams.walletAddr.version + 1,
+    destAddr = params.casinoAddr.bytes,
     sourceAddr = params.walletAddr.bytes,
     seqno = params.walletAddr.params.seqno,
+    subid = params.walletAddr.params.subid,
     price = params.casinoAddr.params.price,
     keyPair = params.keyPair;
   squaresAmount = new BigInteger(squaresAmount.toString())
   let totalPrice = price.multiply(squaresAmount);
-  console.log(totalPrice, totalPrice.intValue())
+  console.log(totalPrice, totalPrice.intValue());
 
 
   let orderMessage = new Builder();
@@ -245,7 +245,15 @@ function createOrder(params, buyedSquares, squaresAmount) {
   orderMessage = new Cell(orderMessage);
 
   let signingMessage = new Builder();
+  if (version == 3) {
+    signingMessage.storeUint(subid, 32);
+    signingMessage.storeBytes([255,255,255,255]);
+  }
   signingMessage.storeUint(seqno, 32);
+  if (version == 2) {
+    signingMessage.storeBytes([255,255,255,255]);
+  }
+
   signingMessage.storeUint(SEND_MODE, 8);
   signingMessage.addRef(orderMessage);
   signingMessage = new Cell(signingMessage);
@@ -271,20 +279,23 @@ function gameСompletion(destAddr) {
   mainMessage.storeBytes(destAddr);
   mainMessage.storeGrams(0);
   mainMessage.storeUint(0, 3);
-  mainMessage.storeBytes([0,0,0,0,0,0,0,0])
+  mainMessage.storeUint(Math.floor(Date.now()/1000), 32);
   mainMessage = new Cell(mainMessage);
   let boc = SerializeBOC(mainMessage);
   sendBagOfCells(bytesToBase64(boc))
 }
 
-function gameStateSave (game_addr, game_id, players) {
+function gameStateSave (game_addr, game_id, players, price) {
   let key = game_addr + ":" + game_id;
-  players = JSON.stringify(players)
-  localStorage.setItem(key, players);
+  let state = JSON.stringify({players: players, price: price.toString(10)})
+  localStorage.setItem(key, state);
 }
 function gameStateLoad (game_addr, game_id) {
   let key = game_addr + ":" + game_id;
   let loaded = localStorage.getItem(key);
-  if (loaded) return JSON.parse(loaded);
-  return {}
+  if (loaded) {
+    loaded = JSON.parse(loaded);
+    loaded.price = new BigInteger(loaded.price);
+  }
+  return loaded || {};
 }
