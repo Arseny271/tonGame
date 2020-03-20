@@ -1,8 +1,9 @@
 "Asm.fif" include
-// automatically generated from `/home/arsen/ton/crypto/smartcont/stdlib.fc` `/home/arsen/contest/casino.fc` 
+// automatically generated from `/home/arsen/ton/crypto/smartcont/stdlib.fc` `/home/arsen/tonGame-master/casino_stable.fc` 
 PROGRAM{
   DECLPROC bits_count
   DECLPROC send_grams
+  DECLPROC send_out
   DECLPROC ~store_base_info
   DECLPROC ~store_game_state
   DECLPROC preload_base_info
@@ -13,7 +14,6 @@ PROGRAM{
   DECLPROC create_prize_multipliers
   DECLPROC game_end
   DECLPROC recv_external
-  85143 DECLMETHOD seqno
   bits_count PROC:<{
     //  number
     0 PUSHINT	//  number res=0
@@ -30,18 +30,34 @@ PROGRAM{
     NIP	//  res
   }>
   send_grams PROC:<{
-    //  addr grams
-    0 PUSHINT	//  addr grams _2=0
-    196 PUSHINT	//  addr grams _2=0 _3=196
-    NEWC	//  addr grams _2=0 _3=196 _4
-    9 STU	//  addr grams _2=0 _6
-    s0 s3 XCHG2	//  _2=0 grams _6 addr
-    STSLICER	//  _2=0 grams _7
-    SWAP	//  _2=0 _7 grams
-    STGRAMS	//  _2=0 _8
-    107 STU	//  _10
-    ENDC	//  _11
-    2 PUSHINT	//  _11 _12=2
+    //  addr grams mode
+    0 PUSHINT	//  addr grams mode _3=0
+    196 PUSHINT	//  addr grams mode _3=0 _4=196
+    NEWC	//  addr grams mode _3=0 _4=196 _5
+    9 STU	//  addr grams mode _3=0 _7
+    s0 s4 XCHG2	//  _3=0 grams mode _7 addr
+    STSLICER	//  _3=0 grams mode _8
+    ROT	//  _3=0 mode _8 grams
+    STGRAMS	//  _3=0 mode _9
+    s1 s2 XCHG	//  mode _3=0 _9
+    107 STU	//  mode _11
+    ENDC	//  mode _12
+    SWAP	//  _12 mode
+    SENDRAWMSG
+  }>
+  send_out PROC:<{
+    //  square_price players_cell final_hash
+    0 PUSHINT	//  square_price players_cell final_hash _3=0
+    96 PUSHINT	//  square_price players_cell final_hash _3=0 _4=96
+    NEWC	//  square_price players_cell final_hash _3=0 _4=96 _5
+    7 STU	//  square_price players_cell final_hash _3=0 _7
+    97 STU	//  square_price players_cell final_hash _9
+    s1 s3 XCHG	//  final_hash players_cell square_price _9
+    64 STU	//  final_hash players_cell _11
+    STREF	//  final_hash _12
+    256 STU	//  _14
+    ENDC	//  _15
+    3 PUSHINT	//  _15 _16=3
     SENDRAWMSG
   }>
   ~store_base_info PROC:<{
@@ -84,49 +100,59 @@ PROGRAM{
     1 EQINT	//  msg_value msg_body base_info ds _16
     33 THROWIFNOT
     preload_game_data CALLDICT	//  msg_value msg_body base_info players_list end_time square_price squares_free
-    s2 PUSH
-    NOW	//  msg_value msg_body base_info players_list end_time square_price squares_free end_time _25
+    NOW	//  msg_value msg_body base_info players_list end_time square_price squares_free _25
+    s3 s(-1) PUXC	//  msg_value msg_body base_info players_list end_time square_price squares_free end_time _25
     LESS	//  msg_value msg_body base_info players_list end_time square_price squares_free _26
     37 THROWIF
     s0 s5 XCHG	//  msg_value squares_free base_info players_list end_time square_price msg_body
     64 LDU	//  msg_value squares_free base_info players_list end_time square_price squares_ordered msg_body
     264 PUSHINT	//  msg_value squares_free base_info players_list end_time square_price squares_ordered msg_body _33=264
     PLDSLICEX	//  msg_value squares_free base_info players_list end_time square_price squares_ordered address
-    s1 s6 XCPU	//  msg_value squares_free base_info players_list end_time square_price address squares_ordered squares_free
-    AND	//  msg_value squares_free base_info players_list end_time square_price address squares_buyed
-    s6 s6 XCPU	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free squares_buyed
-    XOR	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free
-    s6 PUSH	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free squares_buyed
-    bits_count CALLDICT	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free squares_buyed_count
-    s3 PUSH	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free squares_buyed_count square_price
-    MUL	//  msg_value squares_buyed base_info players_list end_time square_price address squares_free total_price
-    s1 s8 XCHG	//  squares_free squares_buyed base_info players_list end_time square_price address msg_value total_price
-    SUB	//  squares_free squares_buyed base_info players_list end_time square_price address balance
-    DUP	//  squares_free squares_buyed base_info players_list end_time square_price address balance balance
-    0 LESSINT	//  squares_free squares_buyed base_info players_list end_time square_price address balance _46
+    s1 s6 PUSH2	//  msg_value squares_free base_info players_list end_time square_price squares_ordered address squares_ordered squares_free
+    AND	//  msg_value squares_free base_info players_list end_time square_price squares_ordered address squares_buyed
+    s7 s7 XCPU	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free squares_buyed
+    XOR	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free
+    s7 PUSH	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free squares_buyed
+    bits_count CALLDICT	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free squares_buyed_count
+    s4 PUSH	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free squares_buyed_count square_price
+    MUL	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free total_price
+    DUP	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free total_price total_price
+    0 EQINT	//  msg_value squares_buyed base_info players_list end_time square_price squares_ordered address squares_free total_price _44
+    39 THROWIF
+    s1 s9 XCHG	//  squares_free squares_buyed base_info players_list end_time square_price squares_ordered address msg_value total_price
+    SUB	//  squares_free squares_buyed base_info players_list end_time square_price squares_ordered address balance
+    DUP	//  squares_free squares_buyed base_info players_list end_time square_price squares_ordered address balance balance
+    0 LESSINT	//  squares_free squares_buyed base_info players_list end_time square_price squares_ordered address balance _50
     35 THROWIF
-    s1 s(-1) PUXC	//  squares_free squares_buyed base_info players_list end_time square_price address address balance
-    send_grams CALLDICT
-    NEWC	//  squares_free squares_buyed base_info players_list end_time square_price address _49
-    s1 s6 XCHG	//  squares_free address base_info players_list end_time square_price squares_buyed _49
-    64 STU	//  squares_free address base_info players_list end_time square_price _51
-    s0 s5 XCHG2	//  squares_free square_price base_info players_list end_time _51 address
-    STSLICER	//  squares_free square_price base_info players_list end_time _52
-    s1 s2 XCHG	//  squares_free square_price base_info end_time players_list _52
-    STREF	//  squares_free square_price base_info end_time _53
+    s2 s7 XCPU	//  squares_free squares_buyed base_info players_list end_time square_price balance address squares_ordered squares_buyed
+    NEQ	//  squares_free squares_buyed base_info players_list end_time square_price balance address _52
+    IF:<{	//  squares_free squares_buyed base_info players_list end_time square_price balance address
+      s0 s1 PUXC
+      2 PUSHINT	//  squares_free squares_buyed base_info players_list end_time square_price address address balance _53=2
+      send_grams CALLDICT
+    }>ELSE<{
+      NIP	//  squares_free squares_buyed base_info players_list end_time square_price address
+    }>
+    s0 s5 XCHG
+    NEWC	//  squares_free address base_info players_list end_time square_price squares_buyed _55
+    64 STU	//  squares_free address base_info players_list end_time square_price _57
+    s0 s5 XCHG2	//  squares_free square_price base_info players_list end_time _57 address
+    STSLICER	//  squares_free square_price base_info players_list end_time _58
+    s1 s2 XCHG	//  squares_free square_price base_info end_time players_list _58
+    STREF	//  squares_free square_price base_info end_time _59
     ENDC	//  squares_free square_price base_info end_time players_list
-    1 PUSHINT	//  squares_free square_price base_info end_time players_list _55=1
-    NEWC	//  squares_free square_price base_info end_time players_list _55=1 _56
-    s1 s2 XCHG	//  squares_free square_price base_info end_time _55=1 players_list _56
-    STREF	//  squares_free square_price base_info end_time _55=1 _57
-    s0 s3 XCHG2	//  squares_free square_price _55=1 end_time _57 base_info
-    STSLICER	//  squares_free square_price _55=1 end_time _58
-    s1 s2 XCHG	//  squares_free square_price end_time _55=1 _58
-    4 STU	//  squares_free square_price end_time _60
-    32 STU	//  squares_free square_price _62
-    64 STU	//  squares_free _64
-    64 STU	//  _66
-    ENDC	//  _67
+    1 PUSHINT	//  squares_free square_price base_info end_time players_list _61=1
+    SWAP
+    NEWC	//  squares_free square_price base_info end_time _61=1 players_list _62
+    STREF	//  squares_free square_price base_info end_time _61=1 _63
+    s0 s3 XCHG2	//  squares_free square_price _61=1 end_time _63 base_info
+    STSLICER	//  squares_free square_price _61=1 end_time _64
+    s1 s2 XCHG	//  squares_free square_price end_time _61=1 _64
+    4 STU	//  squares_free square_price end_time _66
+    32 STU	//  squares_free square_price _68
+    64 STU	//  squares_free _70
+    64 STU	//  _72
+    ENDC	//  _73
     c4 POP
   }>
   get_prize_size PROC:<{
@@ -144,19 +170,16 @@ PROGRAM{
         INDEXVAR	//  prizes square_price squares prize i _9
         s1 s2 XCHG	//  prizes square_price squares i prize _9
         ADD	//  prizes square_price squares i prize
-      }>ELSE<{
-        SWAP	//  prizes square_price squares i prize
-      }>
-      s0 s2 XCHG	//  prizes square_price prize i squares
-      1 RSHIFT#	//  prizes square_price prize i squares
-      SWAP	//  prizes square_price prize squares i
-      INC	//  prizes square_price prize squares i
-      s1 s2 XCHG	//  prizes square_price squares prize i
+        SWAP	//  prizes square_price squares prize i
+      }>	//  prizes square_price squares prize i
+      s0 s2 XCHG	//  prizes square_price i prize squares
+      1 RSHIFT#	//  prizes square_price i prize squares
+      s0 s2 XCHG	//  prizes square_price squares prize i
+      INC	//  prizes square_price squares prize i
     }>	//  prizes square_price squares prize i
     DROP
     NIP
-    s2 POP	//  prize square_price
-    SWAP
+    1 2 BLKDROP2
     100 PUSHINT	//  square_price prize _15=100
     MULDIVR	//  _16
   }>
@@ -217,35 +240,40 @@ PROGRAM{
     PLDREF	//  base_info square_price players_cell
     DUP	//  base_info square_price players_cell players_cell
     HASHCU RANDSEED XOR	//  base_info square_price players_cell final_hash
+    s2 s1 s0 PUSH3	//  base_info square_price players_cell final_hash square_price players_cell final_hash
+    send_out CALLDICT
     DUP	//  base_info square_price players_cell final_hash final_hash
     create_prize_multipliers CALLDICT	//  base_info square_price players_cell final_hash prize_multipliers
-    s0 s2 XCHG	//  base_info square_price prize_multipliers final_hash players_cell
-    CTOS	//  base_info square_price prize_multipliers final_hash players_list
+    s2 PUSH	//  base_info square_price players_cell final_hash prize_multipliers players_cell
+    CTOS	//  base_info square_price players_cell final_hash prize_multipliers players_list
     WHILE:<{
-      DUP	//  base_info square_price prize_multipliers final_hash players_list players_list
-      SBITS	//  base_info square_price prize_multipliers final_hash players_list _14
-    }>DO<{	//  base_info square_price prize_multipliers final_hash players_list
-      64 LDU	//  base_info square_price prize_multipliers final_hash squares_buyed players_list
-      s3 s4 s1 PU2XC	//  base_info square_price prize_multipliers final_hash players_list prize_multipliers square_price squares_buyed
-      get_prize_size CALLDICT	//  base_info square_price prize_multipliers final_hash players_list prize_size
+      DUP	//  base_info square_price players_cell final_hash prize_multipliers players_list players_list
+      SBITS	//  base_info square_price players_cell final_hash prize_multipliers players_list _15
+    }>DO<{	//  base_info square_price players_cell final_hash prize_multipliers players_list
+      64 LDU	//  base_info square_price players_cell final_hash prize_multipliers squares_buyed players_list
+      s2 s5 s1 PU2XC	//  base_info square_price players_cell final_hash prize_multipliers players_list prize_multipliers square_price squares_buyed
+      get_prize_size CALLDICT	//  base_info square_price players_cell final_hash prize_multipliers players_list prize_size
       SWAP
-      264 PUSHINT	//  base_info square_price prize_multipliers final_hash prize_size players_list _23=264
-      LDSLICEX	//  base_info square_price prize_multipliers final_hash prize_size address players_list
-      s0 s2 XCHG	//  base_info square_price prize_multipliers final_hash players_list address prize_size
+      264 PUSHINT	//  base_info square_price players_cell final_hash prize_multipliers prize_size players_list _24=264
+      LDSLICEX	//  base_info square_price players_cell final_hash prize_multipliers prize_size address players_list
+      s0 s2 XCHG
+      3 PUSHINT	//  base_info square_price players_cell final_hash prize_multipliers players_list address prize_size _26=3
       send_grams CALLDICT
-      PLDREF	//  base_info square_price prize_multipliers final_hash _26
-      CTOS	//  base_info square_price prize_multipliers final_hash players_list
-    }>	//  base_info square_price prize_multipliers final_hash players_list
-    s1 s3 XCHG
-    3 BLKDROP	//  base_info final_hash
-    0 PUSHINT	//  base_info final_hash _28=0
-    NEWC	//  base_info final_hash _28=0 _29
-    s0 s3 XCHG2	//  _28=0 final_hash _29 base_info
-    STSLICER	//  _28=0 final_hash _30
-    s1 s2 XCHG	//  final_hash _28=0 _30
-    4 STU	//  final_hash _32
-    256 STU	//  _34
-    ENDC	//  _35
+      PLDREF	//  base_info square_price players_cell final_hash prize_multipliers _28
+      CTOS	//  base_info square_price players_cell final_hash prize_multipliers players_list
+    }>	//  base_info square_price players_cell final_hash prize_multipliers players_list
+    2DROP	//  base_info square_price players_cell final_hash
+    0 PUSHINT	//  base_info square_price players_cell final_hash _30=0
+    NEWC	//  base_info square_price players_cell final_hash _30=0 _31
+    s0 s5 XCHG2	//  _30=0 square_price players_cell final_hash _31 base_info
+    STSLICER	//  _30=0 square_price players_cell final_hash _32
+    s1 s4 XCHG	//  final_hash square_price players_cell _30=0 _32
+    4 STU	//  final_hash square_price players_cell _34
+    s1 s2 XCHG	//  final_hash players_cell square_price _34
+    64 STU	//  final_hash players_cell _36
+    STREF	//  final_hash _37
+    256 STU	//  _39
+    ENDC	//  _40
     c4 POP
   }>
   recv_external PROC:<{
@@ -291,55 +319,46 @@ PROGRAM{
         64 PLDU	//  new_ds endgame_time square_price
         DUP	//  new_ds endgame_time square_price square_price
         116 MULCONST	//  new_ds endgame_time square_price reserve_balance
-        BALANCE	//  new_ds endgame_time square_price reserve_balance _62
-        FIRST	//  new_ds endgame_time square_price reserve_balance current_balance
-        GREATER	//  new_ds endgame_time square_price _65
+        BALANCE FIRST	//  new_ds endgame_time square_price reserve_balance current_balance
+        GREATER	//  new_ds endgame_time square_price _64
         36 THROWIF
-        1 PUSHINT	//  new_ds endgame_time square_price _68=1
-        s0 s3 XCHG2	//  square_price endgame_time _68=1 new_ds
+        1 PUSHINT	//  new_ds endgame_time square_price _67=1
+        s0 s3 XCHG2	//  square_price endgame_time _67=1 new_ds
         4 STU	//  square_price endgame_time new_ds
-        64 PUSHPOW2DEC	//  square_price endgame_time new_ds _76
-        NEWC	//  square_price endgame_time new_ds _76 _77
-        ENDC	//  square_price endgame_time new_ds _76 _78
-        s2 s4 XCHG	//  new_ds endgame_time square_price _76 _78
+        64 PUSHPOW2DEC	//  square_price endgame_time new_ds _75
+        NEWC	//  square_price endgame_time new_ds _75 _76
+        ENDC	//  square_price endgame_time new_ds _75 _77
+        s2 s4 XCHG	//  new_ds endgame_time square_price _75 _77
         ~store_game_state CALLDICT	//  new_ds
       }>ELSE<{	//  new_ds cs
         8 LDU	//  new_ds mode cs
         OVER
-        8 PUSHPOW2DEC	//  new_ds mode cs mode _84=255
-        NEQ	//  new_ds mode cs _85
+        8 PUSHPOW2DEC	//  new_ds mode cs mode _83=255
+        NEQ	//  new_ds mode cs _84
         IF:<{	//  new_ds mode cs
-          PLDREF	//  new_ds mode _86
-          SWAP	//  new_ds _86 mode
+          PLDREF	//  new_ds mode _85
+          SWAP	//  new_ds _85 mode
           SENDRAWMSG
         }>ELSE<{
           2DROP	//  new_ds
         }>
-        0 PUSHINT	//  new_ds _89=0
-        SWAP	//  _89=0 new_ds
+        0 PUSHINT	//  new_ds _88=0
+        SWAP	//  _88=0 new_ds
         4 STU	//  new_ds
       }>
-      ENDC	//  _92
+      ENDC	//  _91
       c4 POP
     }>ELSE<{	//  in_msg base_info ds
-      s2 POP	//  ds base_info
-      SWAP	//  base_info ds
+      1 2 BLKDROP2	//  base_info ds
       32 LDU	//  base_info endgame_time ds
-      NOW	//  base_info endgame_time ds _99
-      60 ADDCONST	//  base_info endgame_time ds _101
-      s1 s2 XCHG	//  base_info ds endgame_time _101
-      LESS	//  base_info ds _102
+      NOW	//  base_info endgame_time ds _98
+      -60 ADDCONST	//  base_info endgame_time ds _100
+      s1 s2 XCHG	//  base_info ds endgame_time _100
+      LESS	//  base_info ds _101
       37 THROWIFNOT
       ACCEPT
       SWAP	//  ds base_info
       game_end CALLDICT
     }>
-  }>
-  seqno PROC:<{
-    // 
-    c4 PUSH	//  _0
-    CTOS	//  _1
-    preload_base_info CALLDICT	//  _4 _5 _6
-    TRIPLE	//  _3
   }>
 }END>c

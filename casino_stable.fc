@@ -1,0 +1,261 @@
+int xor(int a, int b) asm "XOR";
+
+tuple new_tuple() asm "0 TUPLE";
+int index(tuple arr, int index) asm "INDEXVAR";
+(tuple, ()) ~set(tuple arr, int value, int index) asm "SETINDEXVAR";
+
+() randomize_cell(cell x) impure asm "HASHCU ADDRAND";
+(int) random_old(cell x) asm "HASHCU RANDSEED XOR";
+
+int get_grams_balance() asm "BALANCE FIRST";
+
+
+int bits_count(int number) {
+	var res = 0;
+  	while (number){
+		number = number & ( number - 1 );
+		res += 1;
+  	}
+  	return res;
+}
+
+() send_grams(slice addr, int grams, int mode) impure {
+	send_raw_message(begin_cell()
+		.store_uint(196, 9)
+		.store_slice(addr)
+		.store_grams(grams)
+		.store_uint(0, 107)
+		.end_cell()	, mode);
+}
+
+() send_out(int square_price, cell players_cell, int final_hash) impure {
+	send_raw_message(begin_cell()
+		.store_uint(96, 7)
+		.store_uint(0, 97)
+		.store_uint(square_price, 64)
+		.store_ref(players_cell)
+		.store_uint(final_hash, 256)
+		.end_cell()	, 3);
+}
+
+(builder, ()) ~store_base_info(builder ds, int seqno, int subid, int public_key){
+	ds~store_uint(seqno, 32);
+	ds~store_uint(subid, 32);
+	ds~store_uint(public_key, 256);
+	return (ds, ());
+}
+
+(builder, ()) ~store_game_state(builder ds, int endgame_time, int square_price, int squares_free, cell players_list){
+	ds~store_uint(endgame_time, 32);
+	ds~store_uint(square_price, 64);
+	ds~store_uint(squares_free, 64);
+	return (ds.store_ref(players_list), ());
+}
+
+(int, int, int) preload_base_info(slice ds){
+	return (
+		ds~load_uint(32),
+		ds~load_uint(32),
+		ds.preload_uint(256)
+	);
+}
+
+(cell, int, int, int) preload_game_data(slice ds){
+	return (
+		ds~load_ref(),
+		ds~load_uint(32),
+		ds~load_uint(64),
+		ds.preload_uint(64)
+	);
+}
+
+
+
+
+
+() recv_internal(int msg_value, cell msg_cell, slice msg_body) impure {
+	slice ds = get_data().begin_parse();
+	
+	slice base_info = ds~load_bits(320);
+	int status = ds~load_uint(4);
+	throw_unless(33, status == 1); ;; game not started
+	slice game_data = ds;
+	
+	var (players_list, end_time, square_price, squares_free) 
+		= ds.preload_game_data();
+	
+	throw_if(37, end_time < now());
+	
+	int squares_ordered = msg_body~load_uint(64);	
+	slice address = msg_body.preload_bits(264);
+	int squares_buyed = squares_ordered & squares_free;
+	squares_free = xor(squares_free, squares_buyed); 
+	
+	int squares_buyed_count = squares_buyed.bits_count();
+	int total_price = squares_buyed_count * square_price;
+	
+	throw_if(39, total_price == 0);
+	
+	int balance = msg_value - total_price;
+	
+	throw_if(35, balance < 0);	
+
+	if (squares_ordered != squares_buyed) {
+		send_grams(address, balance, 2);
+	}
+	
+	players_list = begin_cell()
+		.store_uint(squares_buyed, 64)
+		.store_slice(address)
+		.store_ref(players_list)
+		.end_cell();
+	
+	set_data(begin_cell()
+		.store_ref(players_list)
+		.store_slice(base_info)
+		.store_uint(1, 4)
+		.store_uint(end_time, 32)
+		.store_uint(square_price, 64)
+		.store_uint(squares_free, 64)
+		.end_cell());
+
+	return();	
+}
+
+
+
+
+
+
+
+int get_prize_size(tuple prizes, int square_price, int squares) {
+	int prize = 0;
+	int i = 0;
+
+	while (squares) {
+		if (squares & 1){
+			prize += prizes.index(i);
+		}
+		squares >>= 1;
+		i += 1;
+	}
+	return muldivr(square_price, prize, 100);
+}
+
+tuple create_multipliers() impure {
+	var arr = new_tuple();
+	int i = 0;
+	repeat (16) {
+		arr~tpush(i * i * i / 13);
+		i += 1;
+	}
+	return arr;
+}
+
+tuple create_prize_multipliers (int hash) impure {
+	int main_winner = 0;
+	var arr = new_tuple();
+	var multipliers = create_multipliers();
+	
+	hash~touch();
+	repeat (64) {
+		int mult = hash & 15;
+		arr~tpush(multipliers.index(mult));
+		main_winner += mult;
+		hash >>= 4;
+	}
+	main_winner &= 63;
+	arr~set( arr.index(main_winner) + 1000, main_winner);
+	return arr;
+}
+
+() game_end (slice ds, slice base_info) impure {
+	int square_price = ds~load_uint(64);
+	cell players_cell = ds.preload_ref();
+	int final_hash = random_old(players_cell); 
+	
+	send_out(square_price, players_cell, final_hash);
+	
+	var prize_multipliers = create_prize_multipliers(final_hash);
+	
+	slice players_list = players_cell.begin_parse();
+	while (players_list.slice_bits()){
+		int squares_buyed = players_list~load_uint(64);
+		int prize_size = prize_multipliers.get_prize_size(square_price, squares_buyed);
+		
+		slice address = players_list~load_bits(264);
+		send_grams(address, prize_size, 3);
+		
+		players_list = players_list.preload_ref().begin_parse();
+	}
+	
+
+	set_data(begin_cell()
+		.store_slice(base_info)
+		.store_uint(0, 4)
+		.store_uint(square_price, 64)
+		.store_ref(players_cell)
+		.store_uint(final_hash, 256)
+		.end_cell());
+}
+
+() recv_external(slice in_msg) impure {
+	slice ds = get_data().begin_parse();
+	
+	slice base_info = ds~load_bits(320);
+	int status = ds~load_uint(4);
+
+	if (status == 0) { ;; game not started
+		var signature = in_msg~load_bits(512);
+	
+		var cs = in_msg;
+ 		int msg_subid = cs~load_uint(32);
+		int msg_seqno = cs~load_uint(32);
+
+		var (stored_seqno, stored_subid, public_key)
+			= base_info.preload_base_info();
+		
+		throw_unless(33, msg_seqno == stored_seqno);
+		throw_unless(34, msg_subid == stored_subid);
+		throw_unless(35, check_signature(slice_hash(in_msg), signature, public_key));
+		accept_message();
+		
+		var new_ds = begin_cell();
+		new_ds~store_base_info(stored_seqno + 1, stored_subid, public_key);
+				
+		cs~touch();
+
+		if (cs.slice_refs_empty?()){
+			;; start the game
+			int endgame_time = cs~load_uint(32);
+			int square_price = cs.preload_uint(64);
+
+			int reserve_balance = square_price * 116;
+			int current_balance = get_grams_balance();
+			throw_if(36, reserve_balance > current_balance);
+
+			new_ds~store_uint(1, 4);	
+			new_ds~store_game_state( endgame_time, square_price, (1 << 64) - 1, begin_cell().end_cell() );
+		} else {
+			;; send grams
+			var mode = cs~load_uint(8);
+			if (mode != 255) {
+				send_raw_message(cs.preload_ref(), mode);
+			}
+
+			new_ds~store_uint(0, 4);
+		}	
+		set_data(new_ds.end_cell());		
+  	} else {
+		int endgame_time = ds~load_uint(32);
+		throw_unless(37, endgame_time < (now() - 60) );
+		accept_message();	
+		ds.game_end(base_info);		
+	}
+}
+
+
+
+;;tuple seqno() method_id {
+;;	return triple(get_data().begin_parse().preload_base_info());
+;;}
