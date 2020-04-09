@@ -26,20 +26,6 @@ Players buy any of 64 squares (or several), after a while the smart contract set
 	- &lt;dest-addr&gt; - address of the recipient
 	- &lt;amount&gt; - amount to be sent
 	
-### **Game web client**
-For the convenience of players, a web client has been created. To use it, start the server:
-
-`cd server`
-
-`sudo python3 server.py`
-
-note that you will need to install the flask:
-
-`pip3 install flask`
-
-![](https://raw.githubusercontent.com/Arseny271/tonGame/master/screenshots/photo_2019-12-22_18-00-04.jpg)
-![](https://raw.githubusercontent.com/Arseny271/tonGame/master/screenshots/image_2019-12-22_18-19-21.png)
-
 
 ### **Prize Determination Algorithm**
 - Random 256 bit integer generated
